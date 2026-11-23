@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AYO AMATI SUSUNAN KUBUS! - Matematika Kelas VI</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Fredoka & Nunito untuk keterbacaan tinggi dari jarak jauh di layar PID -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Three.js untuk visualisasi susunan kubus 3D & transisi sudut pandang halus -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Tone.js untuk efek audio klik lembut tanpa aset eksternal -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #1d4ed8 0%, #5b21b6 50%, #1e40af 100%);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+        }
+
+        h1, h2, h3, .font-display {
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        /* Bingkai Layar PID dengan Rasio 16:9 Terpusat */
+        #pid-stage {
+            width: 100vw;
+            height: 100vh;
+            max-width: 177.78vh;
+            max-height: 56.25vw;
+            margin: auto;
+            position: relative;
+            background: #f8fafc;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.55);
+            overflow: hidden;
+        }
+
+        @media (max-aspect-ratio: 16/9) {
+            #pid-stage {
+                width: 100vw;
+                height: 56.25vw;
+            }
+        }
+
+        @media (min-aspect-ratio: 16/9) {
+            #pid-stage {
+                height: 100vh;
+                width: 177.78vh;
+            }
+        }
+
+        /* Gaya Tombol Taktil Ramah Sentuh PID */
+        .btn-3d {
+            transition: all 0.14s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 5px 0 rgba(15, 23, 42, 0.22);
+        }
+        .btn-3d:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 rgba(15, 23, 42, 0.22);
+        }
+
+        /* Latar Belakang Pola Titik Halus untuk Area Tengah */
+        .bg-stage-grid {
+            background-color: #f0f9ff;
+            background-image: radial-gradient(#bae6fd 1.8px, transparent 1.8px);
+            background-size: 22px 22px;
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-7px); }
+        }
+        .animate-float {
+            animation: floatSlow 3.2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <!-- WADAH UTAMA LAYAR PID 16:9 -->
+    <div id="pid-stage" class="rounded-none sm:rounded-3xl flex flex-col justify-between">
+
+        <!-- ========================================================= -->
+        <!-- 1. LAYAR PEMBUKA (APERSEPSI)                              -->
+        <!-- ========================================================= -->
+        <div id="screen-intro" class="absolute inset-0 z-30 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800 flex flex-col items-center justify-center p-6 text-white">
+            <!-- Tombol Layar Penuh -->
+            <button onclick="toggleFullscreen()" class="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white px-4 py-2.5 rounded-2xl font-bold flex items-center gap-2 backdrop-blur-sm border-2 border-white/30 btn-3d text-sm sm:text-base">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                <span>Layar Penuh</span>
+            </button>
+
+            <div class="bg-yellow-400 text-blue-950 font-display font-bold px-5 py-1.5 rounded-full text-sm sm:text-lg mb-3 shadow-lg tracking-wide">
+                MATEMATIKA KELAS VI SD/MI • BAB 3 KUBUS DAN BALOK
+            </div>
+
+            <!-- Ilustrasi SVG Kubus Warna-Warni -->
+            <div class="animate-float my-2">
+                <svg width="140" height="125" viewBox="0 0 140 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="45,65 70,51 95,65 70,79" fill="#60A5FA" stroke="#1E3A8A" stroke-width="3" stroke-linejoin="round"/>
+                    <polygon points="45,65 70,79 70,108 45,94" fill="#3B82F6" stroke="#1E3A8A" stroke-width="3" stroke-linejoin="round"/>
+                    <polygon points="70,79 95,65 95,94 70,108" fill="#2563EB" stroke="#1E3A8A" stroke-width="3" stroke-linejoin="round"/>
+
+                    <polygon points="70,79 95,65 120,79 95,93" fill="#FDE047" stroke="#1E3A8A" stroke-width="3" stroke-linejoin="round"/>
+                    <polygon points="70,79 95,93 95,122 70,108" fill="#FACC15" stroke="#1E3A8A" stroke-width="3" stroke-linejoin="round"/>
+                    <polygon points="95,93 120,79 120,108 95,122" fill="#EAB308" stroke="#1E3A8A" stroke-width="3" stroke-linejoin="round"/>
+
+                    <polygon points="45,36 70,22 95,36 70,50" fill="#4ADE80" stroke="#1E3A8A" stroke-width="3" stroke-linejoin="round"/>
+                    <polygon points="45,36 70,50 70,79 45,65" fill="#22C55E" stroke="#1E3A8A" stroke-width="3" stroke-linejoin="round"/>
+                    <polygon points="70,50 95,36 95,65 70,79" fill="#16A34A" stroke="#1E3A8A" stroke-width="3" stroke-linejoin="round"/>
+                </svg>
+            </div>
+
+            <h1 class="font-display text-4xl sm:text-6xl font-bold text-center tracking-tight drop-shadow-md text-yellow-300">
+                AYO AMATI SUSUNAN KUBUS!
+            </h1>
+            <p class="font-display text-xl sm:text-2xl font-semibold text-white/95 mt-1 mb-5 text-center">
+                Mengenal Tampilan Bangun Ruang dari Berbagai Arah
+            </p>
+
+            <div class="bg-white/15 backdrop-blur-md border-2 border-white/25 rounded-3xl p-4 sm:p-5 max-w-2xl text-center mb-6">
+                <p class="text-base sm:text-xl font-bold leading-snug">
+                    Mari kita amati bersama bagaimana <span class="text-yellow-300">satu susunan kubus</span> dapat terlihat berbeda jika dilihat dari <span class="text-amber-300">DEPAN</span>, <span class="text-green-300">SAMPING KANAN</span>, dan <span class="text-sky-300">ATAS</span>!
+                </p>
+            </div>
+
+            <button onclick="startObservation()" class="btn-3d bg-green-500 hover:bg-green-400 text-white font-display text-2xl sm:text-3xl font-bold px-10 py-4 rounded-3xl border-4 border-green-300 flex items-center gap-3 shadow-xl">
+                <span>MULAI PENGAMATAN</span>
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </button>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- 2. LAYAR UTAMA PENGAMATAN (3 PANEL: KIRI, TENGAH, KANAN)   -->
+        <!-- ========================================================= -->
+        <div id="screen-main" class="hidden w-full h-full grid grid-cols-12 overflow-hidden">
+
+            <!-- PANEL KIRI (3 Kolom): Judul, Pilihan Susunan 1-3, Petunjuk Singkat, Tombol Penutup -->
+            <aside class="col-span-3 bg-gradient-to-b from-blue-700 to-indigo-900 text-white p-3 sm:p-4 flex flex-col justify-between border-r-4 border-blue-950 z-10">
+                <div>
+                    <!-- Judul Aplikasi -->
+                    <div class="bg-blue-950/60 rounded-2xl p-2.5 text-center border border-blue-400/30 mb-3">
+                        <div class="font-display text-base sm:text-lg font-bold text-yellow-300 leading-tight">
+                            AYO AMATI SUSUNAN KUBUS!
+                        </div>
+                        <div class="text-xs text-blue-200 font-bold mt-0.5">Visualisasi Spasial Kelas VI</div>
+                    </div>
+
+                    <!-- Navigasi Pilihan Susunan 1, 2, 3 -->
+                    <div class="font-display text-xs sm:text-sm font-bold text-blue-200 mb-2 text-center tracking-wide">
+                        PILIH MODEL SUSUNAN:
+                    </div>
+                    <div class="space-y-2.5 mb-3">
+                        <button onclick="selectStructure(0)" id="btn-struct-0" class="w-full btn-3d bg-yellow-400 text-blue-950 font-display text-lg sm:text-xl font-bold py-2.5 px-4 rounded-2xl border-4 border-yellow-200 flex items-center justify-between">
+                            <span>SUSUNAN 1</span>
+                            <span class="text-xs bg-blue-950 text-yellow-300 px-2.5 py-0.5 rounded-full font-extrabold">Sederhana</span>
+                        </button>
+                        <button onclick="selectStructure(1)" id="btn-struct-1" class="w-full btn-3d bg-white text-blue-900 font-display text-lg sm:text-xl font-bold py-2.5 px-4 rounded-2xl border-4 border-blue-300 flex items-center justify-between">
+                            <span>SUSUNAN 2</span>
+                            <span class="text-xs bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full font-extrabold">Bertingkat</span>
+                        </button>
+                        <button onclick="selectStructure(2)" id="btn-struct-2" class="w-full btn-3d bg-white text-blue-900 font-display text-lg sm:text-xl font-bold py-2.5 px-4 rounded-2xl border-4 border-blue-300 flex items-center justify-between">
+                            <span>SUSUNAN 3</span>
+                            <span class="text-xs bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full font-extrabold">Bervariasi</span>
+                        </button>
+                    </div>
+
+                    <!-- Petunjuk Singkat -->
+                    <div class="bg-blue-800/75 border-2 border-blue-400/30 rounded-2xl p-3">
+                        <div class="font-display text-xs sm:text-sm font-bold text-yellow-300 mb-1 flex items-center gap-1.5">
+                            <span>💡</span> PETUNJUK AMATI:
+                        </div>
+                        <p class="text-xs sm:text-sm font-bold text-blue-50 leading-snug">
+                            Pilih susunan kubus, lalu tekan tombol arah di kanan atau <span class="text-yellow-300">geser model 3D</span> untuk melihatnya dari berbagai sisi.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tombol Layar Penuh & Kesimpulan Akhir -->
+                <div class="space-y-2 pt-2">
+                    <button onclick="showOutro()" class="w-full btn-3d bg-purple-500 hover:bg-purple-400 text-white font-display font-bold py-2.5 px-3 rounded-2xl text-sm sm:text-base flex items-center justify-center gap-2 border-2 border-purple-300">
+                        <span>✨ Kesimpulan Pengamatan</span>
+                    </button>
+                    <button onclick="toggleFullscreen()" class="w-full btn-3d bg-blue-950 hover:bg-blue-900 text-blue-200 font-display font-bold py-2 px-3 rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 border border-blue-700">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                        <span>Layar Penuh</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- AREA TENGAH (6 Kolom): Model Susunan Kubus 3D + Gambar Tampak 2D yang Sedang Diamati + Pertanyaan Pemantik -->
+            <main class="col-span-6 bg-stage-grid p-3 sm:p-4 flex flex-col justify-between relative overflow-hidden">
+                
+                <!-- Baris Atas Area Tengah: Panggung Model 3D Utama + Kartu Tampilan 2D yang Diamati -->
+                <div class="flex-1 grid grid-cols-12 gap-3 overflow-hidden">
+                    
+                    <!-- Panggung Model Kubus 3D (7 Kolom) -->
+                    <div class="col-span-7 bg-white rounded-3xl border-4 border-blue-300 shadow-md relative flex flex-col overflow-hidden">
+                        <div class="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5">
+                            <span id="stage-struct-badge" class="bg-blue-600 text-white font-display font-bold text-xs sm:text-sm px-3 py-1 rounded-full shadow">
+                                SUSUNAN 1
+                            </span>
+                            <span id="stage-angle-badge" class="bg-yellow-400 text-blue-950 font-display font-bold text-xs sm:text-sm px-3 py-1 rounded-full shadow">
+                                Tampilan 3D
+                            </span>
+                        </div>
+
+                        <!-- Kanvas Interaktif Three.js -->
+                        <div id="three-canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+
+                        <div class="absolute bottom-2 inset-x-2 flex items-center justify-between pointer-events-none">
+                            <span class="bg-amber-100/95 text-amber-900 border border-amber-300 font-display font-bold text-xs px-2.5 py-0.5 rounded-lg">
+                                🔶 Sisi Depan = Panah Oranye
+                            </span>
+                            <span class="bg-slate-800/75 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-lg">
+                                Geser untuk memutar
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Kotak Gambar Tampak 2D yang Sedang Diamati (5 Kolom) -->
+                    <div class="col-span-5 bg-white rounded-3xl border-4 border-purple-300 shadow-md p-3 flex flex-col items-center justify-between">
+                        <div class="w-full text-center">
+                            <span class="inline-block bg-purple-100 text-purple-800 font-display font-bold text-xs px-3 py-0.5 rounded-full mb-1">
+                                GAMBAR TAMPAK 2D
+                            </span>
+                            <h2 id="view-2d-title" class="font-display text-base sm:text-lg font-bold text-purple-950 leading-tight">
+                                TAMPILAN 3D (SEMUA SISI)
+                            </h2>
+                        </div>
+
+                        <!-- Wadah Render SVG Tampak 2D -->
+                        <div id="view-2d-box" class="w-full flex-1 my-2 bg-slate-50 rounded-2xl border-2 border-dashed border-purple-200 flex items-center justify-center p-2 overflow-hidden">
+                            <!-- Diisi dinamis sesuai tombol arah -->
+                        </div>
+
+                        <p id="view-2d-caption" class="text-xs font-bold text-slate-600 text-center leading-snug bg-purple-50 p-2 rounded-xl w-full">
+                            Tekan tombol <span class="text-purple-700">Tampak Depan, Samping Kanan, atau Atas</span> di panel kanan untuk melihat bayangan 2D-nya.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Baris Bawah Area Tengah: Panduan Pertanyaan Pemantik untuk Diskusi Kelas -->
+                <div class="mt-2.5 bg-white/95 rounded-2xl border-3 border-amber-300 p-2.5 sm:p-3 shadow-sm">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="bg-amber-400 text-amber-950 font-display font-bold text-xs sm:text-sm px-3 py-0.5 rounded-full">
+                            🗣️ AYO DISKUSIKAN BERSAMA!
+                        </span>
+                        <span class="text-xs font-bold text-slate-500 hidden sm:inline">Pertanyaan pemantik pengamatan siswa:</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:text-sm font-bold text-slate-800">
+                        <div>1. Bagaimana bentuk susunan ini jika dilihat dari <span class="text-amber-600">depan</span>?</div>
+                        <div>3. Apa yang terlihat jika kita melihatnya dari <span class="text-sky-600">atas</span>?</div>
+                        <div>2. Apakah bentuknya terlihat sama jika dilihat dari <span class="text-emerald-600">samping</span>?</div>
+                        <div>4. Mengapa bentuk yang sama dapat terlihat <span class="text-purple-600">berbeda</span> dari arah berbeda?</div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- PANEL KANAN (3 Kolom): Kontrol Sudut Pandang & Rotasi -->
+            <aside class="col-span-3 bg-gradient-to-b from-purple-700 to-indigo-900 text-white p-3 sm:p-4 flex flex-col justify-between border-l-4 border-purple-950 z-10">
+                <div>
+                    <div class="text-center font-display text-sm sm:text-base font-bold text-yellow-300 mb-2.5 tracking-wide">
+                        PILIH ARAH PENGAMATAN:
+                    </div>
+
+                    <!-- 3 Tombol Utama Sudut Pandang -->
+                    <div class="space-y-3">
+                        <button onclick="setObservationView('front')" id="btn-view-front" class="w-full btn-3d bg-amber-400 hover:bg-amber-300 text-amber-950 font-display text-base sm:text-lg font-bold py-3.5 px-3 rounded-2xl border-4 border-amber-200 flex items-center justify-between">
+                            <span>👀 TAMPAK DEPAN</span>
+                            <span class="bg-amber-950/15 px-2 py-0.5 rounded-lg text-xs font-extrabold">1</span>
+                        </button>
+
+                        <button onclick="setObservationView('right')" id="btn-view-right" class="w-full btn-3d bg-emerald-400 hover:bg-emerald-300 text-emerald-950 font-display text-base sm:text-lg font-bold py-3.5 px-3 rounded-2xl border-4 border-emerald-200 flex items-center justify-between">
+                            <span>➡️ TAMPAK SAMPING KANAN</span>
+                            <span class="bg-emerald-950/15 px-2 py-0.5 rounded-lg text-xs font-extrabold">2</span>
+                        </button>
+
+                        <button onclick="setObservationView('top')" id="btn-view-top" class="w-full btn-3d bg-sky-400 hover:bg-sky-300 text-sky-950 font-display text-base sm:text-lg font-bold py-3.5 px-3 rounded-2xl border-4 border-sky-200 flex items-center justify-between">
+                            <span>⬇️ TAMPAK ATAS</span>
+                            <span class="bg-sky-950/15 px-2 py-0.5 rounded-lg text-xs font-extrabold">3</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Kontrol Rotasi & Reset Tampilan 3D -->
+                <div class="space-y-2.5 pt-3 border-t-2 border-purple-500/40">
+                    <div class="text-center font-display text-xs font-bold text-purple-200">
+                        KONTROL MODEL 3D:
+                    </div>
+                    <button onclick="toggleAutoSpin()" id="btn-spin" class="w-full btn-3d bg-indigo-500 hover:bg-indigo-400 text-white font-display text-base sm:text-lg font-bold py-3 px-3 rounded-2xl border-3 border-indigo-300 flex items-center justify-center gap-2">
+                        <span>🔄 PUTAR TAMPILAN</span>
+                    </button>
+
+                    <button onclick="setObservationView('iso')" id="btn-view-iso" class="w-full btn-3d bg-white hover:bg-purple-50 text-purple-950 font-display text-base sm:text-lg font-bold py-3 px-3 rounded-2xl border-4 border-purple-300 flex items-center justify-center gap-2">
+                        <span>🧊 KEMBALI KE TAMPILAN 3D</span>
+                    </button>
+                </div>
+            </aside>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- 3. HALAMAN PENUTUP (PENGHUBUNG KE MATERI REKONSTRUKSI)     -->
+        <!-- ========================================================= -->
+        <div id="screen-outro" class="hidden absolute inset-0 z-40 bg-gradient-to-br from-indigo-900 via-purple-800 to-blue-800 text-white p-6 flex flex-col items-center justify-center text-center">
+            <button onclick="toggleFullscreen()" class="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-2xl font-bold flex items-center gap-2 border border-white/30 btn-3d text-sm">
+                <span>Layar Penuh</span>
+            </button>
+
+            <div class="bg-yellow-400 text-blue-950 font-display font-bold px-5 py-1.5 rounded-full text-sm sm:text-lg mb-4 shadow-lg">
+                ✨ KESIMPULAN PENGAMATAN HARI INI
+            </div>
+
+            <h2 class="font-display text-3xl sm:text-5xl font-bold text-yellow-300 max-w-4xl leading-tight drop-shadow mb-5">
+                "SATU SUSUNAN KUBUS, TIGA TAMPILAN BERBEDA!"
+            </h2>
+
+            <div class="bg-white/15 backdrop-blur-md border-4 border-white/30 rounded-3xl p-6 sm:p-8 max-w-3xl mb-6 shadow-xl">
+                <p class="text-xl sm:text-2xl font-bold text-white leading-relaxed mb-4">
+                    "Jika kalian hanya diberikan gambar tampak depan, samping, dan atas, bisakah kalian membangun kembali susunan kubus yang sebenarnya?"
+                </p>
+                <p class="font-display text-xl sm:text-2xl font-bold text-green-300">
+                    "Yuk, kita pelajari cara merekonstruksi susunan kubus berdasarkan tampilan dua dimensi!"
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-center gap-4">
+                <button onclick="backToObservation()" class="btn-3d bg-green-500 hover:bg-green-400 text-white font-display text-xl sm:text-2xl font-bold px-8 py-4 rounded-3xl border-4 border-green-300 shadow-xl">
+                    🔙 KEMBALI AMATI SUSUNAN
+                </button>
+                <button onclick="backToStart()" class="btn-3d bg-white/20 hover:bg-white/30 text-white font-display text-base sm:text-lg font-bold px-6 py-4 rounded-3xl border-2 border-white/40">
+                    Halaman Pembuka
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* =========================================================================
+           1. DATA TIGA SUSUNAN KUBUS YANG LOGIS, BERBEDA, DAN MUDAH DIAMATI
+           Sistem Koordinat Voxel:
+           - x: 0 (Kiri) ke N-1 (Kanan)
+           - y: 0 (Lantai/Dasar) ke H-1 (Atas)
+           - z: 0 (Belakang) ke D-1 (Depan)
+           Setiap kubus ditopang penuh dari lantai (y=0) tanpa melayang.
+           ========================================================================= */
+
+        const PALETTE = {
+            blue:   { flat: '#3B82F6', hex: 0x3B82F6 },
+            yellow: { flat: '#FACC15', hex: 0xFACC15 },
+            green:  { flat: '#22C55E', hex: 0x22C55E },
+            purple: { flat: '#A855F7', hex: 0xA855F7 },
+            red:    { flat: '#EF4444', hex: 0xEF4444 }
+        };
+
+        const STRUCTURES = [
+            {
+                name: "SUSUNAN 1",
+                subtitle: "Bentuk Sederhana (4 Kubus)",
+                description: "Susunan sederhana dengan tiga kubus mendatar di bagian bawah dan satu kubus bertumpuk di sisi kiri atas.",
+                // 3 kubus sejajar di bawah (x=0,1,2) dan 1 kubus bertumpuk di kiri atas (x=0, y=1)
+                voxels: [
+                    { x: 0, y: 0, z: 0, color: 'blue' },
+                    { x: 1, y: 0, z: 0, color: 'yellow' },
+                    { x: 2, y: 0, z: 0, color: 'green' },
+                    { x: 0, y: 1, z: 0, color: 'purple' }
+                ]
+            },
+            {
+                name: "SUSUNAN 2",
+                subtitle: "Bentuk Bertingkat (6 Kubus)",
+                description: "Susunan tangga bertingkat dari kiri ke kanan (tinggi 3, tinggi 2, tinggi 1) yang memiliki kedalaman ke depan.",
+                // Tangga 3 tingkat di belakang + 1 kubus di depan tengah
+                voxels: [
+                    { x: 0, y: 0, z: 0, color: 'blue' },
+                    { x: 0, y: 1, z: 0, color: 'green' },
+                    { x: 0, y: 2, z: 0, color: 'yellow' },
+                    { x: 1, y: 0, z: 0, color: 'purple' },
+                    { x: 1, y: 1, z: 0, color: 'red' },
+                    { x: 2, y: 0, z: 0, color: 'blue' }
+                ]
+            },
+            {
+                name: "SUSUNAN 3",
+                subtitle: "Bentuk Bervariasi (7 Kubus)",
+                description: "Susunan kubus bervariasi dengan dua baris kedalaman (depan dan belakang) serta ketinggian berbeda.",
+                // Baris belakang (z=0): kolom kiri tinggi 2, tengah tinggi 1, kanan tinggi 2
+                // Baris depan (z=1): kolom tengah tinggi 1, kanan tinggi 1
+                voxels: [
+                    { x: 0, y: 0, z: 0, color: 'blue' },
+                    { x: 0, y: 1, z: 0, color: 'yellow' },
+                    { x: 1, y: 0, z: 0, color: 'green' },
+                    { x: 2, y: 0, z: 0, color: 'purple' },
+                    { x: 2, y: 1, z: 0, color: 'red' },
+                    { x: 1, y: 0, z: 1, color: 'yellow' },
+                    { x: 2, y: 0, z: 1, color: 'blue' }
+                ]
+            }
+        ];
+
+        /* =========================================================================
+           2. PERHITUNGAN PROYEKSI ORTOGRAFIS 2D YANG PRESISI
+           ========================================================================= */
+
+        function computeProjections(voxels) {
+            const maxX = Math.max(...voxels.map(v => v.x));
+            const maxY = Math.max(...voxels.map(v => v.y));
+            const maxZ = Math.max(...voxels.map(v => v.z));
+
+            // 1. TAMPAK DEPAN (dilihat dari +Z menuju -Z): sumbu mendatar x (0..maxX), sumbu tegak y (maxY..0)
+            const front = [];
+            for (let y = maxY; y >= 0; y--) {
+                const row = [];
+                for (let x = 0; x <= maxX; x++) {
+                    const matches = voxels.filter(v => v.x === x && v.y === y);
+                    if (matches.length > 0) {
+                        matches.sort((a, b) => b.z - a.z); // Kubus paling depan menutupi belakang
+                        row.push(matches[0].color);
+                    } else {
+                        row.push(null);
+                    }
+                }
+                front.push(row);
+            }
+
+            // 2. TAMPAK SAMPING KANAN (dilihat dari +X menuju -X):
+            // Saat mengamati dari kanan, sisi kiri gambar adalah DEPAN (z=maxZ) dan sisi kanan adalah BELAKANG (z=0)
+            const right = [];
+            for (let y = maxY; y >= 0; y--) {
+                const row = [];
+                for (let z = maxZ; z >= 0; z--) {
+                    const matches = voxels.filter(v => v.z === z && v.y === y);
+                    if (matches.length > 0) {
+                        matches.sort((a, b) => b.x - a.x); // Kubus paling kanan menutupi kiri
+                        row.push(matches[0].color);
+                    } else {
+                        row.push(null);
+                    }
+                }
+                right.push(row);
+            }
+
+            // 3. TAMPAK ATAS (dilihat dari +Y menuju -Y):
+            // Baris paling atas adalah BELAKANG (z=0), baris paling bawah adalah DEPAN (z=maxZ)
+            const top = [];
+            for (let z = 0; z <= maxZ; z++) {
+                const row = [];
+                for (let x = 0; x <= maxX; x++) {
+                    const matches = voxels.filter(v => v.x === x && v.z === z);
+                    if (matches.length > 0) {
+                        matches.sort((a, b) => b.y - a.y); // Kubus paling atas menutupi bawah
+                        row.push(matches[0].color);
+                    } else {
+                        row.push(null);
+                    }
+                }
+                top.push(row);
+            }
+
+            return { front, right, top };
+        }
+
+        function render2DProjectionSVG(grid, viewMode) {
+            const rows = grid.length;
+            const cols = grid[0].length;
+            const cell = 48;
+            const pad = 10;
+            const width = cols * cell + pad * 2;
+            const height = rows * cell + pad * 2;
+
+            let cellsSVG = '';
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const x = pad + c * cell;
+                    const y = pad + r * cell;
+                    const colorKey = grid[r][c];
+                    if (colorKey) {
+                        const fill = PALETTE[colorKey].flat;
+                        cellsSVG += `<rect x="${x}" y="${y}" width="${cell}" height="${cell}" rx="5" fill="${fill}" stroke="#1e293b" stroke-width="3.5"/>`;
+                    } else {
+                        // Petak kosong samar sebagai acuan grid spasial
+                        cellsSVG += `<rect x="${x}" y="${y}" width="${cell}" height="${cell}" rx="5" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+                    }
+                }
+            }
+
+            // Label orientasi kecil di bawah gambar 2D agar siswa mudah menghubungkan arah
+            let orientLabel = '';
+            if (viewMode === 'front') orientLabel = 'Kiri ◄───► Kanan';
+            if (viewMode === 'right') orientLabel = 'Depan ◄───► Belakang';
+            if (viewMode === 'top') orientLabel = 'Sisi Depan di Bawah ▼';
+
+            return `
+                <div class="flex flex-col items-center justify-center w-full h-full">
+                    <svg viewBox="0 0 ${width} ${height}" class="max-w-full max-h-[82%] drop-shadow-sm">${cellsSVG}</svg>
+                    <span class="text-[11px] font-extrabold text-slate-500 mt-1.5">${orientLabel}</span>
+                </div>
+            `;
+        }
+
+        /* =========================================================================
+           3. STATE NAVIGASI & AUDIO RINGAN
+           ========================================================================= */
+
+        let currentStructIdx = 0;
+        let currentViewMode = 'iso'; // 'iso' | 'front' | 'right' | 'top'
+        let isAutoSpinning = false;
+        let audioInitialized = false;
+
+        async function playTone(type) {
+            try {
+                if (!audioInitialized) {
+                    await Tone.start();
+                    audioInitialized = true;
+                }
+                const synth = new Tone.Synth({
+                    oscillator: { type: 'sine' },
+                    envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 }
+                }).toDestination();
+                synth.volume.value = -12;
+
+                if (type === 'switch') synth.triggerAttackRelease('C5', '32n');
+                if (type === 'view') synth.triggerAttackRelease('E5', '32n');
+                if (type === 'reset') synth.triggerAttackRelease('G5', '32n');
+            } catch (e) {
+                // Abaikan jika browser memblokir audio sebelum interaksi
+            }
+        }
+
+        function startObservation() {
+            playTone('switch');
+            document.getElementById('screen-intro').classList.add('hidden');
+            document.getElementById('screen-main').classList.remove('hidden');
+            setTimeout(() => {
+                initThreeEngine();
+                selectStructure(0);
+            }, 30);
+        }
+
+        function showOutro() {
+            playTone('switch');
+            isAutoSpinning = false;
+            document.getElementById('screen-main').classList.add('hidden');
+            document.getElementById('screen-outro').classList.remove('hidden');
+        }
+
+        function backToObservation() {
+            playTone('switch');
+            document.getElementById('screen-outro').classList.add('hidden');
+            document.getElementById('screen-main').classList.remove('hidden');
+            handleResize();
+        }
+
+        function backToStart() {
+            playTone('switch');
+            isAutoSpinning = false;
+            document.getElementById('screen-outro').classList.add('hidden');
+            document.getElementById('screen-main').classList.add('hidden');
+            document.getElementById('screen-intro').classList.remove('hidden');
+        }
+
+        function selectStructure(idx) {
+            playTone('switch');
+            currentStructIdx = idx;
+            isAutoSpinning = false;
+            updateSpinButtonUI();
+
+            // Perbarui gaya tombol Susunan 1, 2, 3 di panel kiri
+            for (let i = 0; i < 3; i++) {
+                const btn = document.getElementById(`btn-struct-${i}`);
+                const tag = btn.querySelector('span:last-child');
+                if (i === idx) {
+                    btn.className = "w-full btn-3d bg-yellow-400 text-blue-950 font-display text-lg sm:text-xl font-bold py-2.5 px-4 rounded-2xl border-4 border-yellow-200 flex items-center justify-between scale-[1.02]";
+                    tag.className = "text-xs bg-blue-950 text-yellow-300 px-2.5 py-0.5 rounded-full font-extrabold";
+                } else {
+                    btn.className = "w-full btn-3d bg-white hover:bg-blue-50 text-blue-900 font-display text-lg sm:text-xl font-bold py-2.5 px-4 rounded-2xl border-4 border-blue-300 flex items-center justify-between";
+                    tag.className = "text-xs bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full font-extrabold";
+                }
+            }
+
+            const struct = STRUCTURES[idx];
+            document.getElementById('stage-struct-badge').textContent = struct.name;
+
+            // Bangun ulang model 3D di kanvas Three.js
+            buildVoxelMeshGroup(struct.voxels);
+
+            // Kembalikan sudut pandang awal ke 3D saat berganti susunan
+            setObservationView('iso', true);
+        }
+
+        function setObservationView(mode, silent = false) {
+            if (!silent) playTone('view');
+            currentViewMode = mode;
+            isAutoSpinning = false;
+            updateSpinButtonUI();
+
+            const struct = STRUCTURES[currentStructIdx];
+            const projections = computeProjections(struct.voxels);
+
+            const angleBadge = document.getElementById('stage-angle-badge');
+            const viewTitle = document.getElementById('view-2d-title');
+            const viewBox = document.getElementById('view-2d-box');
+            const viewCaption = document.getElementById('view-2d-caption');
+
+            // Reset highlight tombol arah kanan
+            const btnFront = document.getElementById('btn-view-front');
+            const btnRight = document.getElementById('btn-view-right');
+            const btnTop = document.getElementById('btn-view-top');
+            const btnIso = document.getElementById('btn-view-iso');
+
+            [btnFront, btnRight, btnTop, btnIso].forEach(b => b.classList.remove('ring-4', 'ring-yellow-300'));
+
+            // Reset rotasi grup kubus agar kamera ortografis sejajar tepat dengan sumbu
+            if (cubeGroup) {
+                targetGroupRot.set(0, 0, 0);
+            }
+
+            if (mode === 'iso') {
+                targetCamPos.set(5.5, 4.8, 5.5);
+                angleBadge.textContent = "Tampilan 3D";
+                angleBadge.className = "bg-yellow-400 text-blue-950 font-display font-bold text-xs sm:text-sm px-3 py-1 rounded-full shadow";
+                btnIso.classList.add('ring-4', 'ring-yellow-300');
+
+                viewTitle.textContent = "BENTUK UTUH 3 DIMENSI";
+                viewBox.innerHTML = `
+                    <div class="text-center px-3">
+                        <div class="text-4xl mb-2">🧊</div>
+                        <div class="font-display font-bold text-sm sm:text-base text-blue-900 mb-1">${struct.subtitle}</div>
+                        <p class="text-xs font-bold text-slate-600 leading-snug">${struct.description}</p>
+                    </div>
+                `;
+                viewCaption.innerHTML = `Pilih tombol <span class="text-amber-600">Depan</span>, <span class="text-emerald-600">Samping Kanan</span>, atau <span class="text-sky-600">Atas</span> untuk mengamati tampilannya!`;
+            } else if (mode === 'front') {
+                targetCamPos.set(0, 0, 9);
+                angleBadge.textContent = "TAMPAK DEPAN";
+                angleBadge.className = "bg-amber-400 text-amber-950 font-display font-bold text-xs sm:text-sm px-3 py-1 rounded-full shadow";
+                btnFront.classList.add('ring-4', 'ring-yellow-300');
+
+                viewTitle.textContent = "GAMBAR TAMPAK DEPAN";
+                viewBox.innerHTML = render2DProjectionSVG(projections.front, 'front');
+                viewCaption.innerHTML = `Ini adalah bentuk yang terlihat saat kalian berdiri tepat di <span class="text-amber-600">DEPAN</span> susunan kubus.`;
+            } else if (mode === 'right') {
+                targetCamPos.set(9, 0, 0);
+                angleBadge.textContent = "TAMPAK SAMPING KANAN";
+                angleBadge.className = "bg-emerald-400 text-emerald-950 font-display font-bold text-xs sm:text-sm px-3 py-1 rounded-full shadow";
+                btnRight.classList.add('ring-4', 'ring-yellow-300');
+
+                viewTitle.textContent = "GAMBAR TAMPAK SAMPING KANAN";
+                viewBox.innerHTML = render2DProjectionSVG(projections.right, 'right');
+                viewCaption.innerHTML = `Ini adalah bentuk yang terlihat saat kalian mengamati dari <span class="text-emerald-600">SAMPING KANAN</span>.`;
+            } else if (mode === 'top') {
+                targetCamPos.set(0, 9, 0.001); // 0.001 mencegah gimbal lock pada sumbu vertikal
+                angleBadge.textContent = "TAMPAK ATAS";
+                angleBadge.className = "bg-sky-400 text-sky-950 font-display font-bold text-xs sm:text-sm px-3 py-1 rounded-full shadow";
+                btnTop.classList.add('ring-4', 'ring-yellow-300');
+
+                viewTitle.textContent = "GAMBAR TAMPAK ATAS";
+                viewBox.innerHTML = render2DProjectionSVG(projections.top, 'top');
+                viewCaption.innerHTML = `Ini adalah bentuk yang terlihat saat kalian melihat lurus dari <span class="text-sky-600">ATAS</span> ke bawah.`;
+            }
+        }
+
+        function toggleAutoSpin() {
+            playTone('view');
+            isAutoSpinning = !isAutoSpinning;
+            if (isAutoSpinning) {
+                targetCamPos.set(5.5, 4.8, 5.5);
+                document.getElementById('stage-angle-badge').textContent = "Memutar 360°";
+            }
+            updateSpinButtonUI();
+        }
+
+        function updateSpinButtonUI() {
+            const btn = document.getElementById('btn-spin');
+            if (isAutoSpinning) {
+                btn.className = "w-full btn-3d bg-pink-500 hover:bg-pink-400 text-white font-display text-base sm:text-lg font-bold py-3 px-3 rounded-2xl border-4 border-pink-200 flex items-center justify-center gap-2";
+                btn.innerHTML = `<span>⏸️ HENTIKAN PUTARAN</span>`;
+            } else {
+                btn.className = "w-full btn-3d bg-indigo-500 hover:bg-indigo-400 text-white font-display text-base sm:text-lg font-bold py-3 px-3 rounded-2xl border-3 border-indigo-300 flex items-center justify-center gap-2";
+                btn.innerHTML = `<span>🔄 PUTAR TAMPILAN</span>`;
+            }
+        }
+
+        /* =========================================================================
+           4. MESIN VISUALISASI 3D THREE.JS (SMOOTH TRANSITION & TOUCH ROTATION)
+           ========================================================================= */
+
+        let scene, camera, renderer, cubeGroup, animFrameId;
+        let targetCamPos = new THREE.Vector3(5.5, 4.8, 5.5);
+        let targetGroupRot = new THREE.Euler(0, 0, 0);
+        let isDragging = false;
+        let prevPointer = { x: 0, y: 0 };
+
+        function initThreeEngine() {
+            const container = document.getElementById('three-canvas-container');
+            container.innerHTML = '';
+
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+
+            const width = container.clientWidth || 450;
+            const height = container.clientHeight || 350;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xffffff);
+
+            // Kamera Ortografis memastikan tampilan Depan, Kanan, Atas benar-benar datar (proyeksi 2D sejati)
+            const frustum = 3.1;
+            const aspect = width / height;
+            camera = new THREE.OrthographicCamera(
+                -frustum * aspect, frustum * aspect,
+                frustum, -frustum,
+                0.1, 100
+            );
+            camera.position.copy(targetCamPos);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            // Pencahayaan cerah dengan bayangan sisi yang jelas
+            const ambient = new THREE.AmbientLight(0xffffff, 0.72);
+            scene.add(ambient);
+
+            const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.45);
+            dirLight1.position.set(6, 10, 8);
+            scene.add(dirLight1);
+
+            const dirLight2 = new THREE.DirectionalLight(0xe0f2fe, 0.25);
+            dirLight2.position.set(-6, -4, -6);
+            scene.add(dirLight2);
+
+            cubeGroup = new THREE.Group();
+            scene.add(cubeGroup);
+
+            // Interaksi Sentuh PID & Mouse untuk memutar bebas
+            const dom = renderer.domElement;
+
+            const startDrag = (x, y) => {
+                isDragging = true;
+                isAutoSpinning = false;
+                updateSpinButtonUI();
+                prevPointer = { x, y };
+            };
+
+            const moveDrag = (x, y) => {
+                if (!isDragging || !cubeGroup) return;
+                const dx = x - prevPointer.x;
+                const dy = y - prevPointer.y;
+                targetGroupRot.y += dx * 0.012;
+                targetGroupRot.x = Math.max(-0.9, Math.min(0.9, targetGroupRot.x + dy * 0.012));
+                cubeGroup.rotation.y = targetGroupRot.y;
+                cubeGroup.rotation.x = targetGroupRot.x;
+                prevPointer = { x, y };
+
+                document.getElementById('stage-angle-badge').textContent = "Putar Bebas";
+                document.getElementById('stage-angle-badge').className = "bg-purple-500 text-white font-display font-bold text-xs sm:text-sm px-3 py-1 rounded-full shadow";
+            };
+
+            const endDrag = () => {
+                isDragging = false;
+            };
+
+            dom.addEventListener('mousedown', e => startDrag(e.clientX, e.clientY));
+            window.addEventListener('mousemove', e => moveDrag(e.clientX, e.clientY));
+            window.addEventListener('mouseup', endDrag);
+
+            dom.addEventListener('touchstart', e => {
+                if (e.touches.length === 1) startDrag(e.touches[0].clientX, e.touches[0].clientY);
+            }, { passive: true });
+            dom.addEventListener('touchmove', e => {
+                if (e.touches.length === 1) moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+            }, { passive: true });
+            dom.addEventListener('touchend', endDrag);
+
+            window.addEventListener('resize', handleResize);
+
+            // Loop Animasi Halus
+            function animate() {
+                animFrameId = requestAnimationFrame(animate);
+
+                // Transisi posisi kamera yang halus (lerp)
+                camera.position.lerp(targetCamPos, 0.11);
+                camera.lookAt(0, 0, 0);
+
+                if (cubeGroup) {
+                    if (isAutoSpinning) {
+                        targetGroupRot.y += 0.015;
+                        cubeGroup.rotation.y = targetGroupRot.y;
+                        cubeGroup.rotation.x += (0 - cubeGroup.rotation.x) * 0.1;
+                    } else if (!isDragging) {
+                        cubeGroup.rotation.x += (targetGroupRot.x - cubeGroup.rotation.x) * 0.14;
+                        cubeGroup.rotation.y += (targetGroupRot.y - cubeGroup.rotation.y) * 0.14;
+                    }
+                }
+
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
+        function buildVoxelMeshGroup(voxels) {
+            if (!cubeGroup) return;
+            while (cubeGroup.children.length > 0) {
+                cubeGroup.remove(cubeGroup.children[0]);
+            }
+
+            const maxX = Math.max(...voxels.map(v => v.x));
+            const maxY = Math.max(...voxels.map(v => v.y));
+            const maxZ = Math.max(...voxels.map(v => v.z));
+
+            const offsetX = maxX / 2;
+            const offsetY = maxY / 2;
+            const offsetZ = maxZ / 2;
+
+            const boxGeo = new THREE.BoxGeometry(0.98, 0.98, 0.98);
+            const edgesGeo = new THREE.EdgesGeometry(boxGeo);
+            const edgeMat = new THREE.LineBasicMaterial({ color: 0x0f172a, linewidth: 2 });
+
+            voxels.forEach(v => {
+                const mat = new THREE.MeshLambertMaterial({ color: PALETTE[v.color].hex });
+                const cube = new THREE.Mesh(boxGeo, mat);
+                cube.position.set(v.x - offsetX, v.y - offsetY, v.z - offsetZ);
+
+                const wireframe = new THREE.LineSegments(edgesGeo, edgeMat);
+                cube.add(wireframe);
+                cubeGroup.add(cube);
+            });
+
+            // Tambahkan alas papan grid tipis dan penunjuk arah DEPAN di sisi +Z
+            const floorSize = 4.2;
+            const gridHelper = new THREE.GridHelper(floorSize, 4, 0x94a3b8, 0xe2e8f0);
+            gridHelper.position.y = -offsetY - 0.50;
+            cubeGroup.add(gridHelper);
+
+            // Penanda Panah Segitiga Oranye di sisi DEPAN (+Z)
+            const arrowShape = new THREE.Shape();
+            arrowShape.moveTo(0, 0.25);
+            arrowShape.lineTo(-0.25, -0.15);
+            arrowShape.lineTo(0.25, -0.15);
+            arrowShape.closePath();
+
+            const arrowGeo = new THREE.ShapeGeometry(arrowShape);
+            const arrowMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b, side: THREE.DoubleSide });
+            const arrowMesh = new THREE.Mesh(arrowGeo, arrowMat);
+            arrowMesh.rotation.x = Math.PI / 2;
+            arrowMesh.position.set(0, -offsetY - 0.49, (maxZ / 2) + 1.05);
+            cubeGroup.add(arrowMesh);
+
+            targetGroupRot.set(0, 0, 0);
+            cubeGroup.rotation.set(0, 0, 0);
+        }
+
+        function handleResize() {
+            const container = document.getElementById('three-canvas-container');
+            if (!container || !renderer || !camera) return;
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            if (width === 0 || height === 0) return;
+
+            const frustum = 3.1;
+            const aspect = width / height;
+            camera.left = -frustum * aspect;
+            camera.right = frustum * aspect;
+            camera.top = frustum;
+            camera.bottom = -frustum;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        /* =========================================================================
+           5. LAYAR PENUH (FULLSCREEN) & PINTASAN KEYBOARD UNTUK GURU
+           ========================================================================= */
+
+        function toggleFullscreen() {
+            playTone('switch');
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                }
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            const mainVisible = !document.getElementById('screen-main').classList.contains('hidden');
+            if (!mainVisible) return;
+
+            if (e.key === '1') setObservationView('front');
+            if (e.key === '2') setObservationView('right');
+            if (e.key === '3') setObservationView('top');
+            if (e.key === '0' || e.key === 'Escape') setObservationView('iso');
+            if (e.key === ' ') {
+                e.preventDefault();
+                toggleAutoSpin();
+            }
+        });
+    </script>
+</body>
+</html>
